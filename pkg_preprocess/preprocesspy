@@ -1,0 +1,41 @@
+from textblob import TextBlob
+from nltk.stem.wordnet import WordNetLemmatizer
+
+from nltk.corpus import stopwords
+
+stop = stopwords.words('english')
+
+
+def clean_data(df):
+    token_list = []
+    for val in df["review"]:
+        ngram_object = TextBlob(val)
+        Bigram = ngram_object.ngrams(n=1)
+        token_list.append(" ".join([x[0] for x in Bigram]))
+    return token_list
+
+    stop = set(stopwords.words('english'))
+    lemma = WordNetLemmatizer()
+
+    def lemmatize_with_postag(sentence):
+        sent = TextBlob(sentence)
+        tag_dict = {"J": 'a',
+                    "N": 'n',
+                    "V": 'v',
+                    "R": 'r'}
+        words_and_tags = [(w, tag_dict.get(pos[0], 'n')) for w, pos in sent.tags]
+        lemmatized_list = [wd.lemmatize(tag) for wd, tag in words_and_tags]
+        return " ".join(lemmatized_list)
+
+    def clean(doc):
+        stop_free = " ".join([i for i in doc.lower().split() if i not in stop])
+        stop_free = stop_free.translate({ord(c): " " for c in "!@#$%^&*()[]{};:,./<>?\|`~=_+''"})
+
+        normalized = " ".join(lemma.lemmatize(word) for word in stop_free.split())
+        normalized = " ".join([x for x in normalized.split() if len(x) > 1 and not x.isdigit()])
+
+        return normalized
+
+    doc_clean = [clean(doc) for doc in token_list]
+
+    return doc_clean
